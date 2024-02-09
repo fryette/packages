@@ -24,6 +24,6 @@ Downloaded by pub (not CocoaPods).
   s.dependency 'GoogleMaps', '< 9.0'
   s.static_framework = true
   s.platform = :ios, '14.0'
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.resource_bundles = {'google_maps_flutter_ios_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
 end
