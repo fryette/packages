@@ -445,6 +445,16 @@ class GoogleMapsFlutterAndroid extends GoogleMapsFlutterPlatform {
   /// Currently defaults to false, but the default is subject to change.
   bool useAndroidViewSurface = false;
 
+  /// Set [GoogleMapsFlutterPlatform] to build the Google Maps widget with
+  /// Hybrid Composition++ (HCPP).
+  ///
+  /// HCPP needs the `io.flutter.embedding.android.EnableHcpp` manifest flag,
+  /// Android API 34+ and Impeller on Vulkan. Only enable it when
+  /// [HybridAndroidViewController.checkIfSupported] returns true.
+  ///
+  /// Takes precedence over [useAndroidViewSurface].
+  bool useHybridCompositionPlusPlus = false;
+
   /// Requests Google Map Renderer with [AndroidMapRenderer] type.
   ///
   /// See https://pub.dev/packages/google_maps_flutter_android#map-renderer
@@ -520,7 +530,7 @@ class GoogleMapsFlutterAndroid extends GoogleMapsFlutterPlatform {
     );
 
     const viewType = 'plugins.flutter.dev/google_maps_android';
-    if (useAndroidViewSurface) {
+    if (useAndroidViewSurface || useHybridCompositionPlusPlus) {
       return PlatformViewLink(
         viewType: viewType,
         surfaceFactory: (BuildContext context, PlatformViewController controller) {
@@ -531,14 +541,23 @@ class GoogleMapsFlutterAndroid extends GoogleMapsFlutterPlatform {
           );
         },
         onCreatePlatformView: (PlatformViewCreationParams params) {
-          final AndroidViewController controller = PlatformViewsService.initExpensiveAndroidView(
-            id: params.id,
-            viewType: viewType,
-            layoutDirection: widgetConfiguration.textDirection,
-            creationParams: creationParams,
-            creationParamsCodec: MapsApi.pigeonChannelCodec,
-            onFocus: () => params.onFocusChanged(true),
-          );
+          final AndroidViewController controller = useHybridCompositionPlusPlus
+              ? PlatformViewsService.initHybridAndroidView(
+                  id: params.id,
+                  viewType: viewType,
+                  layoutDirection: widgetConfiguration.textDirection,
+                  creationParams: creationParams,
+                  creationParamsCodec: MapsApi.pigeonChannelCodec,
+                  onFocus: () => params.onFocusChanged(true),
+                )
+              : PlatformViewsService.initExpensiveAndroidView(
+                  id: params.id,
+                  viewType: viewType,
+                  layoutDirection: widgetConfiguration.textDirection,
+                  creationParams: creationParams,
+                  creationParamsCodec: MapsApi.pigeonChannelCodec,
+                  onFocus: () => params.onFocusChanged(true),
+                );
           controller.addOnPlatformViewCreatedListener(params.onPlatformViewCreated);
           controller.addOnPlatformViewCreatedListener(onPlatformViewCreated);
 
